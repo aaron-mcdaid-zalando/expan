@@ -506,16 +506,40 @@ def normal_sample_weighted_difference(x_numerators, y_numerators, x_denominators
 
     # Coerce data to right format
     _x_ratio = np.array(x_numerators/x_denominators, dtype=float)
-    _x_ratio = _x_ratio[~np.isnan(_x_ratio)]
     _y_ratio = np.array(y_numerators/y_denominators, dtype=float)
-    _y_ratio = _y_ratio[~np.isnan(_y_ratio)]
-    # 0/0 will result in 'nan' above; and that's the desired behaviour. Such
-    # data points will be removed
+    # 0/0 will result in 'nan' in those two lines; and that's the
+    # desired behaviour. Such data points will be removed
+
+    # identify the positions that need to be removed, as they are 'NaN'
+    _x_nans = ~np.isnan(_x_ratio)
+    _y_nans = ~np.isnan(_y_ratio)
+
+    # ... remove them
+    _x_ratio = _x_ratio[_x_nans]
+    _y_ratio = _y_ratio[_y_nans]
+    x_numerators = x_numerators[_x_nans]
+    x_denominators = x_denominators[_x_nans]
+    y_numerators = y_numerators[_y_nans]
+    y_denominators = y_denominators[_y_nans]
+    assert len(_x_ratio) == len(x_numerators)
+    assert len(_x_ratio) == len(x_denominators)
+    assert len(_y_ratio) == len(y_numerators)
+    assert len(_y_ratio) == len(y_denominators)
 
     # these next four lines are what need to change for derived KPIs
     # Calculate statistics
-    mean1 = np.mean(_x_ratio)
-    mean2 = np.mean(_y_ratio)
+    mean1 = np.sum(x_numerators) / np.sum(x_denominators)
+    mean2 = np.sum(y_numerators) / np.sum(y_denominators)
+
+    x_mean_denominator = np.mean(x_denominators)
+    y_mean_denominator = np.mean(y_denominators)
+
+    # To understand the next two lines, think of linear regression.
+    # We're computing the different between the real numerator and
+    # and our 'prediction' of the numerator
+    x_predicted_numerators = x_denominators * mean1
+    y_predicted_numerators = y_denominators * mean2
+    # These next two lines are, currently, wrong!
     std1 = np.std(_x_ratio)
     std2 = np.std(_y_ratio)
 
