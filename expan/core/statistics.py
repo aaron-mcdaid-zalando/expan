@@ -94,11 +94,12 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
         mu = _delta_mean(_x, _y)
         # Computing the confidence intervals
         if assume_normal:
-            c_i = normal_sample_weighted_difference(
+            nswd = normal_sample_weighted_difference(
                             x_numerators=_x, y_numerators=_y,
                             x_denominators = x_denominators, y_denominators = y_denominators,
                             percentiles=percentiles, relative=relative,
                                            multi_test_correction=multi_test_correction, num_tests=num_tests)
+            c_i = nswd['c_i']
         else:
             # We need to consider 'bootstrap' more with weighting. Should it be adjusted for
             # weighting? Probably yes, just not sure how to do it yet. TODO
@@ -488,7 +489,15 @@ def normal_sample_weighted_difference(x_numerators, y_numerators, x_denominators
         num_tests (integer): number of tests or reported kpis used for multiple correction.
 
     Returns:
-        dict: percentiles and corresponding values
+        a dict with a few items:
+            - ['c_i']               dict: percentiles and corresponding values
+            - ['mean(x)-mean(y)']   difference in means
+            - ['x_mean']
+            - ['y_mean']
+            - ['x_n']               sample size: i.e. numerator and denominator has reasonable values
+            - ['y_n']               "
+            - ['x_var']             variance, corrected for the weight
+            - ['y_var']             variance, corrected for the weight
     """
     assert hasattr(x_numerators, '__len__')
     assert hasattr(y_numerators, '__len__')
@@ -551,9 +560,19 @@ def normal_sample_weighted_difference(x_numerators, y_numerators, x_denominators
     n2 = len(_y_ratio)
 
     # Push calculation to normal difference function
-    return normal_difference(mean1=mean1, std1=std1, n1=n1, mean2=mean2,
+    c_i = normal_difference(mean1=mean1, std1=std1, n1=n1, mean2=mean2,
                              std2=std2, n2=n2, percentiles=percentiles, relative=relative,
                              multi_test_correction=multi_test_correction, num_tests=num_tests)
+    assert isinstance(c_i, dict)
+    return  {   'c_i':c_i,
+                'mean(x)-mean(y)': mean1 - mean2,
+                'x_mean' : mean1,
+                'y_mean' : mean2,
+                'x_n'    : n1,
+                'y_n'    : n2,
+                'x_var'    : np.var(x_error_from_prediction / x_mean_denominator),
+                'y_var'    : np.var(y_error_from_prediction / y_mean_denominator),
+            }
 
 
 def normal_difference(mean1, std1, n1, mean2, std2, n2, percentiles=[2.5, 97.5],
