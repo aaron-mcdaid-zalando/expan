@@ -147,8 +147,8 @@ class Experiment(object):
                 treatment_data   = treatment * treatment_weight
                 treatment_numers = treatment * treatment_denoms
                 with warnings.catch_warnings(record=True) as w:
-                    statistics = worker(x=treatment_data, y=control_data,
-                            x_denominators = 1, y_denominators = 1,
+                    statistics = worker(x=treatment_numers, y=control_numers,
+                            x_denominators = treatment_denoms, y_denominators = control_denoms,
                             )
                     # add statistical power
                     power = statx.compute_statistical_power(treatment_data, control_data)
