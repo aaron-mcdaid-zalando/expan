@@ -22,8 +22,10 @@ def make_delta(assume_normal=True, percentiles=[2.5, 97.5],
 
 
 def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
-          min_observations=20, nruns=10000, relative=False, x_weights=1, y_weights=1,
+          min_observations=20, nruns=10000, relative=False, x_denominators=1, y_denominators=1,
           multi_test_correction=False, num_tests=1):
+    assert x_denominators == 1
+    assert y_denominators == 1
     """
     Calculates the difference of means between the samples (x-y) in a
     statistical sense, i.e. with confidence intervals.
@@ -47,17 +49,11 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
         nruns (integer): only used if assume normal is false
         relative (boolean): if relative==True, then the values will be returned
             as distances below and above the mean, respectively, rather than the
-            absolute values. In	this case, the interval is mean-ret_val[0] to
+            absolute values. In this case, the interval is mean-ret_val[0] to
             mean+ret_val[1]. This is more useful in many situations because it
             corresponds with the sem() and std() functions.
-        x_weights (list): weights for the x vector, in order to calculate
-            the weighted mean and confidence intervals, which is equivalent
-            to the overall metric. This weighted approach is only relevant
-            for ratios.
-        y_weights (list): weights for the y vector, in order to calculate
-            the weighted mean and confidence intervals, which is equivalent
-            to the overall metric. This weighted approach is only relevant
-            for ratios.
+        x_denominator (list): ...
+        y_denominator (list): ...
         multi_test_correction (boolean): flag of whether the correction for multiple testing is needed.
         num_tests (integer): number of tests or reported kpis used for multiple correction.
 
@@ -69,8 +65,8 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
         raise ValueError('Please provide two non-None samples.')
 
     # Coercing missing values to right format
-    _x = np.array(x, dtype=float) * x_weights
-    _y = np.array(y, dtype=float) * y_weights
+    _x = np.array(x, dtype=float)
+    _y = np.array(y, dtype=float)
 
     x_nan = np.isnan(_x).sum()
     y_nan = np.isnan(_y).sum()
