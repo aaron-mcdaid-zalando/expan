@@ -24,8 +24,6 @@ def make_delta(assume_normal=True, percentiles=[2.5, 97.5],
 def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
           min_observations=20, nruns=10000, relative=False, x_denominators=1, y_denominators=1,
           multi_test_correction=False, num_tests=1):
-    assert x_denominators == 1
-    assert y_denominators == 1
     """
     Calculates the difference of means between the samples (x-y) in a
     statistical sense, i.e. with confidence intervals.
@@ -67,11 +65,13 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
     # Coercing missing values to right format
     _x = np.array(x, dtype=float)
     _y = np.array(y, dtype=float)
+    # I would like to assert there are no 'inf's in the input,
+    # but I'm scared to do so
 
     _x_ratio = _x / x_denominators
     _y_ratio = _y / y_denominators
 
-    # TODO: 0/0
+    # 0/0 will give 'nan' above, which is what we want.
 
     x_nan = np.isnan(_x_ratio).sum()
     y_nan = np.isnan(_y_ratio).sum()
@@ -492,25 +492,33 @@ def normal_sample_weighted_difference(x_numerators, y_numerators, x_denominators
     """
     assert hasattr(x_numerators, '__len__')
     assert hasattr(y_numerators, '__len__')
+
+    # if the denominators are just int/floats, convert them into
+    # 'array-likes' of the appropriate length
     if not hasattr(x_denominators, '__len__'): x_denominators = (x_numerators*0.0) + x_denominators
     if not hasattr(y_denominators, '__len__'): y_denominators = (y_numerators*0.0) + y_denominators
     assert hasattr(x_denominators, '__len__')
     assert hasattr(y_denominators, '__len__')
+
+    # check they have the appropriate length
     assert len(x_numerators) == len(x_denominators)
     assert len(y_numerators) == len(y_denominators)
+
     # Coerce data to right format
     _x_ratio = np.array(x_numerators/x_denominators, dtype=float)
     _x_ratio = _x_ratio[~np.isnan(_x_ratio)]
     _y_ratio = np.array(y_numerators/y_denominators, dtype=float)
     _y_ratio = _y_ratio[~np.isnan(_y_ratio)]
+    # 0/0 will result in 'nan' above; and that's the desired behaviour. Such
+    # data points will be removed
 
-    # TODO: 0/0
-
+    # these next four lines are what need to change for derived KPIs
     # Calculate statistics
     mean1 = np.mean(_x_ratio)
     mean2 = np.mean(_y_ratio)
     std1 = np.std(_x_ratio)
     std2 = np.std(_y_ratio)
+
     n1 = len(_x_ratio)
     n2 = len(_y_ratio)
 
