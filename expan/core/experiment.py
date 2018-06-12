@@ -97,6 +97,12 @@ class Experiment(object):
         non_zeros      = len(x) - zeros_and_nans
         return non_zeros/np.nansum(x) * x
 
+    def _get_denominators(self, data, kpi, variant):
+        if kpi not in self.reference_kpis:
+            return 1.0
+        reference_kpi  = self.reference_kpis[kpi]
+        return           self.get_kpi_by_name_and_variant(data, reference_kpi, variant)
+
     def delta(self, method='fixed_horizon', **worker_args):
         return self._delta(method=method, data=self.data, **worker_args)
 
@@ -131,11 +137,15 @@ class Experiment(object):
                        'variants': []}
             control         = self.get_kpi_by_name_and_variant(data, kpi, self.control_variant_name)
             control_weight  = self._get_weights(data, kpi, self.control_variant_name)
+            control_denoms  = self._get_denominators(data, kpi, self.control_variant_name)
             control_data    = control * control_weight
+            control_numers  = control * control_denoms
             for variant in self.variant_names:
                 treatment        = self.get_kpi_by_name_and_variant(data, kpi, variant)
                 treatment_weight = self._get_weights(data, kpi, variant)
+                treatment_denoms = self._get_denominators(data, kpi, variant)
                 treatment_data   = treatment * treatment_weight
+                treatment_numers = treatment * treatment_denoms
                 with warnings.catch_warnings(record=True) as w:
                     statistics = worker(x=treatment_data, y=control_data,
                             x_denominators = 1, y_denominators = 1,
