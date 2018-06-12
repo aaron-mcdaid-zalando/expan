@@ -89,9 +89,21 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
         mu = np.nan
         # Create nan dictionary
         c_i = dict(list(zip(percentiles, np.empty(len(percentiles)) * np.nan)))
+        # Return the result structure
+        # return mu, c_i, ss_x, ss_y, np.nanmean(_x), np.nanmean(_y)
+        c_i = [{'percentile': p, 'value': v} for (p, v) in c_i.items()]
+
+        return {'delta'                 : float(mu),
+                'confidence_interval'   : c_i,
+                'treatment_sample_size' : int(ss_x),
+                'control_sample_size'   : int(ss_y),
+                'treatment_mean'        : float(np.nanmean(_x)),
+                'control_mean'          : float(np.nanmean(_y)),
+                'treatment_variance'    : float(np.nanvar(_x)),
+                'control_variance'      : float(np.nanvar(_y))}
+
     else:
         # Computing the mean
-        mu = _delta_mean(_x, _y)
         # Computing the confidence intervals
         if assume_normal:
             nswd = normal_sample_weighted_difference(
@@ -99,25 +111,44 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
                             x_denominators = x_denominators, y_denominators = y_denominators,
                             percentiles=percentiles, relative=relative,
                                            multi_test_correction=multi_test_correction, num_tests=num_tests)
-            c_i = nswd['c_i']
+            c_i =   nswd['c_i']
+
+            assert ss_x == nswd['x_n']
+            assert ss_y == nswd['y_n']
+
+            # Return the result structure
+            # return mu, c_i, ss_x, ss_y, np.nanmean(_x), np.nanmean(_y)
+            c_i = [{'percentile': p, 'value': v} for (p, v) in c_i.items()]
+
+
+            return {'delta'                 : float(nswd['mean(x)-mean(y)']),
+                    'confidence_interval'   : c_i,
+                    'treatment_sample_size' : int(ss_x),
+                    'control_sample_size'   : int(ss_y),
+                    'treatment_mean'        : float(nswd['x_mean']),
+                    'control_mean'          : float(nswd['y_mean']),
+                    'treatment_variance'    : float(nswd['x_var']),
+                    'control_variance'      : float(nswd['y_var']),
+                    }
         else:
+            mu = _delta_mean(_x, _y)
             # We need to consider 'bootstrap' more with weighting. Should it be adjusted for
             # weighting? Probably yes, just not sure how to do it yet. TODO
             c_i, _ = bootstrap(x=_x_ratio, y=_y_ratio, percentiles=percentiles, nruns=nruns, relative=relative,
                                multi_test_correction=multi_test_correction, num_tests=num_tests)
 
-    # Return the result structure
-    # return mu, c_i, ss_x, ss_y, np.nanmean(_x), np.nanmean(_y)
-    c_i = [{'percentile': p, 'value': v} for (p, v) in c_i.items()]
+            # Return the result structure
+            # return mu, c_i, ss_x, ss_y, np.nanmean(_x), np.nanmean(_y)
+            c_i = [{'percentile': p, 'value': v} for (p, v) in c_i.items()]
 
-    return {'delta'                 : float(mu),
-            'confidence_interval'   : c_i,
-            'treatment_sample_size' : int(ss_x),
-            'control_sample_size'   : int(ss_y),
-            'treatment_mean'        : float(np.nanmean(_x)),
-            'control_mean'          : float(np.nanmean(_y)),
-            'treatment_variance'    : float(np.nanvar(_x)),
-            'control_variance'      : float(np.nanvar(_y))}
+            return {'delta'                 : float(mu),
+                    'confidence_interval'   : c_i,
+                    'treatment_sample_size' : int(ss_x),
+                    'control_sample_size'   : int(ss_y),
+                    'treatment_mean'        : float(np.nanmean(_x)),
+                    'control_mean'          : float(np.nanmean(_y)),
+                    'treatment_variance'    : float(np.nanvar(_x)),
+                    'control_variance'      : float(np.nanvar(_y))}
 
 
 def sample_size(x):
