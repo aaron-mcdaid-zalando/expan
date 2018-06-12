@@ -338,7 +338,7 @@ def pooled_std(std1, n1, std2, n2):
     Todo:
         Also implement a version for unequal variances.
     """
-    if not (0.5 < (std1 ** 2) / (std2 ** 2) < 2.):
+    if std1 != std2 and not (0.5 < (std1 ** 2) / (std2 ** 2) < 2.):
         warnings.warn('Sample variances differ too much to assume that '
                       'population variances are equal.')
 
