@@ -539,9 +539,13 @@ def normal_sample_weighted_difference(x_numerators, y_numerators, x_denominators
     # and our 'prediction' of the numerator
     x_predicted_numerators = x_denominators * mean1
     y_predicted_numerators = y_denominators * mean2
-    # These next two lines are, currently, wrong!
-    std1 = np.std(_x_ratio)
-    std2 = np.std(_y_ratio)
+    x_error_from_prediction = (x_numerators - x_predicted_numerators)
+    y_error_from_prediction = (y_numerators - y_predicted_numerators)
+    # These next two lines finally compute the correct variance, as
+    # defined in the pdf:
+    # https://github.bus.zalan.do/axolotl/experimentation-library/blob/master/variance_of_derived_kpis/derivedKpisAndSignificance.pdf
+    std1 = np.std(x_error_from_prediction / x_mean_denominator)
+    std2 = np.std(y_error_from_prediction / y_mean_denominator)
 
     n1 = len(_x_ratio)
     n2 = len(_y_ratio)
