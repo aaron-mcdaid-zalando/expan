@@ -97,7 +97,9 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
             c_i = normal_sample_difference(x=_x, y=_y, percentiles=percentiles, relative=relative,
                                            multi_test_correction=multi_test_correction, num_tests=num_tests)
         else:
-            c_i, _ = bootstrap(x=_x, y=_y, percentiles=percentiles, nruns=nruns, relative=relative,
+            # We need to consider 'bootstrap' more with weighting. Should it be adjusted for
+            # weighting? Probably yes, just not sure how to do it yet. TODO
+            c_i, _ = bootstrap(x=_x_ratio, y=_y_ratio, percentiles=percentiles, nruns=nruns, relative=relative,
                                multi_test_correction=multi_test_correction, num_tests=num_tests)
 
     # Return the result structure
