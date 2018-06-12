@@ -94,7 +94,10 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
         mu = _delta_mean(_x, _y)
         # Computing the confidence intervals
         if assume_normal:
-            c_i = normal_sample_difference(x=_x, y=_y, percentiles=percentiles, relative=relative,
+            c_i = normal_sample_weighted_difference(
+                            x_numerators=_x, y_numerators=_y,
+                            x_denominators = x_denominators, y_denominators = y_denominators,
+                            percentiles=percentiles, relative=relative,
                                            multi_test_correction=multi_test_correction, num_tests=num_tests)
         else:
             # We need to consider 'bootstrap' more with weighting. Should it be adjusted for
@@ -458,6 +461,58 @@ def normal_sample_difference(x, y, percentiles=[2.5, 97.5], relative=False, mult
     std2 = np.std(_y)
     n1 = len(_x)
     n2 = len(_y)
+
+    # Push calculation to normal difference function
+    return normal_difference(mean1=mean1, std1=std1, n1=n1, mean2=mean2,
+                             std2=std2, n2=n2, percentiles=percentiles, relative=relative,
+                             multi_test_correction=multi_test_correction, num_tests=num_tests)
+
+def normal_sample_weighted_difference(x_numerators, y_numerators, x_denominators, y_denominators, percentiles=[2.5, 97.5], relative=False, multi_test_correction=False, num_tests=1):
+    """
+    Calculates the difference distribution of two normal distributions given
+    by their samples.
+
+    Computation is done in form of treatment minus control. It is assumed that
+    the standard deviations of both distributions do not differ too much.
+
+    Args:
+        x_numerators, x_denominators (array-like): sample of a treatment group
+        y_numerators, y_denominators (array-like): sample of a control group
+        percentiles (list): list of percentile values to compute
+        relative (boolean): If relative==True, then the values will be returned
+            as distances below and above the mean, respectively, rather than the
+            absolute values. In this case, the interval is mean-ret_val[0] to
+            mean+ret_val[1]. This is more useful in many situations because it
+            corresponds with the sem() and std() functions.
+        multi_test_correction (boolean): flag of whether the correction for multiple testing is needed.
+        num_tests (integer): number of tests or reported kpis used for multiple correction.
+
+    Returns:
+        dict: percentiles and corresponding values
+    """
+    assert hasattr(x_numerators, '__len__')
+    assert hasattr(y_numerators, '__len__')
+    if not hasattr(x_denominators, '__len__'): x_denominators = (x_numerators*0.0) + x_denominators
+    if not hasattr(y_denominators, '__len__'): y_denominators = (y_numerators*0.0) + y_denominators
+    assert hasattr(x_denominators, '__len__')
+    assert hasattr(y_denominators, '__len__')
+    assert len(x_numerators) == len(x_denominators)
+    assert len(y_numerators) == len(y_denominators)
+    # Coerce data to right format
+    _x_ratio = np.array(x_numerators/x_denominators, dtype=float)
+    _x_ratio = _x_ratio[~np.isnan(_x_ratio)]
+    _y_ratio = np.array(y_numerators/y_denominators, dtype=float)
+    _y_ratio = _y_ratio[~np.isnan(_y_ratio)]
+
+    # TODO: 0/0
+
+    # Calculate statistics
+    mean1 = np.mean(_x_ratio)
+    mean2 = np.mean(_y_ratio)
+    std1 = np.std(_x_ratio)
+    std2 = np.std(_y_ratio)
+    n1 = len(_x_ratio)
+    n2 = len(_y_ratio)
 
     # Push calculation to normal difference function
     return normal_difference(mean1=mean1, std1=std1, n1=n1, mean2=mean2,
