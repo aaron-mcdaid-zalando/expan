@@ -68,15 +68,20 @@ def delta(x, y, assume_normal=True, percentiles=[2.5, 97.5],
     _x = np.array(x, dtype=float)
     _y = np.array(y, dtype=float)
 
-    x_nan = np.isnan(_x).sum()
-    y_nan = np.isnan(_y).sum()
+    _x_ratio = _x / x_denominators
+    _y_ratio = _y / y_denominators
+
+    # TODO: 0/0
+
+    x_nan = np.isnan(_x_ratio).sum()
+    y_nan = np.isnan(_y_ratio).sum()
     if x_nan > 0:
         warnings.warn('Discarding ' + str(x_nan) + ' NaN(s) in the x array!')
     if y_nan > 0:
         warnings.warn('Discarding ' + str(y_nan) + ' NaN(s) in the y array!')
 
-    ss_x = sample_size(_x)
-    ss_y = sample_size(_y)
+    ss_x = sample_size(_x_ratio)
+    ss_y = sample_size(_y_ratio)
 
     # Checking if enough observations are left after dropping NaNs
     if min(ss_x, ss_y) < min_observations:
