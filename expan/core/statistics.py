@@ -14,9 +14,9 @@ def make_delta(assume_normal=True, percentiles=[2.5, 97.5],
                min_observations=20, nruns=10000, relative=False, multi_test_correction=False, num_tests=1):
     """ a closure to the below delta function """
 
-    def f(x, y, x_weights=1, y_weights=1):
+    def f(x, y, x_denominators=1, y_denominators=1):
         return delta(x, y, assume_normal, percentiles, min_observations,
-                     nruns, relative, x_weights, y_weights, multi_test_correction, num_tests)
+                     nruns, relative, x_denominators, y_denominators, multi_test_correction, num_tests)
 
     return f
 

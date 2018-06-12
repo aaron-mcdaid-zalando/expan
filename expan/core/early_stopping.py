@@ -33,7 +33,9 @@ def obrien_fleming(information_fraction, alpha=0.05):
 
 def make_group_sequential(spending_function='obrien_fleming', estimated_sample_size=None, alpha=0.05, cap=8,
                           multi_test_correction=False, num_tests=1):
-    def f(x, y):
+    def f(x, y, x_denominators = 1, y_denominators = 1):
+        assert x_denominators == 1
+        assert y_denominators == 1
         return group_sequential(x, y, spending_function, estimated_sample_size,
                                 alpha, cap, multi_test_correction, num_tests)
     return f
@@ -254,7 +256,9 @@ def _bayes_sampling(x, y, distribution='normal', num_iters=25000, inference="sam
 
 
 def make_bayes_factor(distribution='normal', num_iters=25000, inference='sampling'):
-    def f(x, y):
+    def f(x, y, x_denominators=1, y_denominators=1):
+        assert x_denominators == 1
+        assert y_denominators == 1
         return bayes_factor(x, y, distribution, num_iters, inference)
     return f
 
@@ -310,7 +314,9 @@ def get_trace_normalized_effect_size(distribution, traces):
 
 
 def make_bayes_precision(distribution='normal', posterior_width=0.08, num_iters=25000, inference='sampling'):
-    def f(x, y):
+    def f(x, y, x_denominators=1, y_denominators=1):
+        assert x_denominators == 1
+        assert y_denominators == 1
         return bayes_precision(x, y, distribution, posterior_width, num_iters, inference)
     return f
 

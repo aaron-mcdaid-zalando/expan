@@ -137,7 +137,9 @@ class Experiment(object):
                 treatment_weight = self._get_weights(data, kpi, variant)
                 treatment_data   = treatment * treatment_weight
                 with warnings.catch_warnings(record=True) as w:
-                    statistics = worker(x=treatment_data, y=control_data)
+                    statistics = worker(x=treatment_data, y=control_data,
+                            x_denominators = 1, y_denominators = 1,
+                            )
                     # add statistical power
                     power = statx.compute_statistical_power(treatment_data, control_data)
                     statistics['statistical_power'] = power
